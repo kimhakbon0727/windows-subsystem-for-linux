@@ -21,7 +21,6 @@ java -version
 ```
 
 ### 📥 Tomcat 설치 (Tomcat 10 기준)
-최신 우분투 환경에서는 `tomcat10` 설치를 권장합니다.
 ```bash
 # Tomcat 10 및 관리자 도구 설치
 sudo apt install tomcat10 tomcat10-admin -y
@@ -44,8 +43,6 @@ sudo apt install tomcat10 tomcat10-admin -y
 
 ## 3. Tomcat 주요 폴더 경로 (Directory Structure)
 
-
-
 | 폴더명 | 용도 | 실제 경로 (Ubuntu 기준) |
 | :--- | :--- | :--- |
 | **`bin`** | **실행 파일** | `/usr/share/tomcat10/bin/` |
@@ -53,21 +50,33 @@ sudo apt install tomcat10 tomcat10-admin -y
 | **`lib`** | **라이브러리** | `/usr/share/tomcat10/lib/` |
 | **`logs`** | **로그 저장** | `/var/log/tomcat10/` |
 | **`webapps`** | **배포 경로** | `/var/lib/tomcat10/webapps/` |
-| **`work`** | **작업 공간** | `/var/cache/tomcat10/` |
 
 ---
 
-## 4. 핵심 설정 파일 상세 설명 (`conf/`)
+## 4. 핵심 설정 파일 상세 설명 및 실무 팁 (`conf/`)
 
-톰캣의 동작을 제어하는 핵심 파일들의 역할입니다.
+### ① server.xml (서버 엔진 설정)
+* **역할:** 서버 포트, 프로토콜, 엔진 설정을 담당합니다.
+* **실무 팁 (IP 접근 제어):** 특정 IP만 접속을 허용(방화벽 역할)하다가 전체 허용으로 바꿀 때 사용합니다.
+    * **특정 IP만 허용 시:** `<RemoteAddrValve allow="127\.0\.0\.1|192\.168\.0\.10" />`
+    * **모두 허용 시:** 위 설정을 주석 처리(``)하거나 `allow=".*"`로 수정합니다.
 
-| 파일명 | 역할 및 주요 설정 내용 |
-| :--- | :--- |
-| **`server.xml`** | **가장 중요한 설정 파일.** 서버의 포트 번호(기본 8080), 커넥션 타임아웃, 엔진 및 호스트 설정, SSL(HTTPS) 인증서 적용 등을 수행합니다. |
-| **`web.xml`** | **전역 웹 애플리케이션 설정.** 모든 웹 앱에 적용될 기본 서블릿 매핑, MIME 타입 정의, 세션 유지 시간(Session Timeout), 웰컴 파일 리스트 등을 설정합니다. |
-| **`context.xml`** | **개별 웹 앱 공통 설정.** 데이터베이스 커넥션 풀(DBCP)과 같은 자원(Resource) 정의나 특정 웹 앱의 공통 속성을 정의할 때 사용합니다. |
-| **`tomcat-users.xml`** | **사용자 권한 설정.** 톰캣 관리자 페이지(/manager, /host-manager)에 접속할 수 있는 ID/PW와 역할(Role)을 지정합니다. |
-| **`logging.properties`** | **로그 출력 설정.** 톰캣 내부 로깅 시스템의 로그 레벨(DEBUG, INFO, ERROR 등)과 로그 파일 저장 형식을 지정합니다. |
+### ② web.xml (웹 애플리케이션 설정)
+* **역할:** 서블릿 매핑, 세션 시간, 파일 경로 등을 설정합니다.
+* **실무 팁 (파일 경로 변경):** 외부 리소스나 설정 파일의 경로를 지정할 때 사용합니다.
+    ```xml
+    <context-param>
+        <param-name>configLocation</param-name>
+        <param-value>/etc/myproject/config.properties</param-value>
+    </context-param>
+    ```
+    * 배포 환경(운영/개발)에 따라 위 `param-value` 값을 실제 서버 경로로 수정합니다.
+
+### ③ context.xml (공통 자원 설정)
+* **역할:** DB 커넥션 풀(DBCP) 등 프로젝트 전역에서 쓸 자원을 정의합니다.
+
+### ④ tomcat-users.xml (권한 설정)
+* **역할:** 매니저 페이지 접속용 ID/PW를 설정합니다.
 
 ---
 
@@ -78,14 +87,18 @@ sudo apt install tomcat10 tomcat10-admin -y
 # 설정 파일 열기
 sudo nano /etc/tomcat10/server.xml
 ```
-* `<Connector port="8080" ... />` 부분을 찾아 숫자를 수정한 후 `sudo systemctl restart tomcat10` 명령으로 재시작합니다.
+* `<Connector port="8080" ... />` 부분을 수정 후 서비스를 재시작합니다.
+
+### 🛡️ IP 접근 제한 해제 (RemoteAddrValve)
+만약 특정 IP만 접속 가능하게 막혀 있다면, `context.xml`이나 `server.xml` 내부의 `Valve` 설정을 확인하세요.
+* `allow` 속성에 들어있는 IP 패턴을 `.*`로 바꾸면 모든 IP에서 접속이 가능해집니다.
 
 ---
 
 ## 6. 프로젝트 배포 프로세스 (Deployment)
 
-1. 개발 도구(Eclipse/IntelliJ)에서 프로젝트를 **`.war`** 파일로 빌드합니다.
-2. 배포 경로인 `/var/lib/tomcat10/webapps/` 폴더로 해당 파일을 복사합니다.
-   * 예: `sudo cp my-app.war /var/lib/tomcat10/webapps/`
-3. 톰캣이 실행 중이면 자동으로 압축이 풀리며 배포가 완료됩니다.
+1. 프로젝트를 **`.war`** 파일로 빌드합니다.
+2. `/var/lib/tomcat10/webapps/` 폴더로 복사합니다.
+   * `sudo cp project.war /var/lib/tomcat10/webapps/`
+3. 톰캣이 실행 중이면 자동으로 압축이 풀리며 배포됩니다.
 4. 브라우저에서 `http://서버IP:포트/파일명`으로 접속을 확인합니다.

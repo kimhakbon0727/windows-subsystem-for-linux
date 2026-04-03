@@ -32,7 +32,7 @@ sudo apt install tomcat10 tomcat10-admin -y
 | **서비스 재시작** | `sudo systemctl restart tomcat10` |
 | **상태 확인** | `sudo systemctl status tomcat10` |
 | **로그 모니터링** | `tail -f /var/log/tomcat10/catalina.out` |
-| **포트 점유 확인** | `netstat -an | grep 8080` |
+| **포트 점유 확인** | `netstat -an` |
 
 ---
 

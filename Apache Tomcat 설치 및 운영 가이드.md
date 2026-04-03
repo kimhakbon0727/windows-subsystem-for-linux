@@ -25,6 +25,8 @@ sudo apt install tomcat10 tomcat10-admin -y
 
 ## 2. 주요 운영 명령어 (Service Management)
 
+### systemctl 방식 (권장 - 서비스 등록된 경우)
+
 | 기능 | 명령어 |
 | :--- | :--- |
 | **서비스 시작** | `sudo systemctl start tomcat10` |
@@ -33,6 +35,23 @@ sudo apt install tomcat10 tomcat10-admin -y
 | **상태 확인** | `sudo systemctl status tomcat10` |
 | **로그 모니터링** | `tail -f /var/log/tomcat10/catalina.out` |
 | **포트 점유 확인** | `netstat -an` |
+
+### bin 스크립트 방식 (직접 실행 - 수동 설치 또는 디버깅 시)
+
+systemctl 대신 Tomcat의 `bin/` 디렉토리에 있는 스크립트로 직접 제어할 수 있습니다.
+수동으로 설치한 경우나 특정 환경 변수를 지정해서 띄워야 할 때 주로 사용합니다.
+```bash
+# bin 디렉토리로 이동
+cd /usr/share/tomcat10/bin/
+
+# 시작
+sudo ./startup.sh
+
+# 종료
+sudo ./shutdown.sh
+```
+
+> **주의:** `systemctl`로 관리 중인 서버에서 `shutdown.sh`를 실행하면 프로세스만 종료되고 서비스는 비정상 상태로 남을 수 있습니다. 같은 방식으로 통일해서 사용하는 것을 권장합니다.
 
 ---
 
@@ -96,10 +115,60 @@ Tomcat은 `webapps` 디렉토리를 실시간으로 감시합니다. `server.xml
 
 ---
 
-## 6. [실무] 로그 파일 분석 (`logs/`)
+## 6. [실무] 로그 파일 완전 분석 (`logs/`)
 
-- **`catalina.out`**: 톰캣 엔진 로그 및 표준 출력. (장애 시 최우선 확인)
-- **`localhost_access_log`**: HTTP 요청 기록. (IP, 접속 URL 등 **통계 테이블 분석용**)
+### 로그 파일 종류 및 상황별 확인 가이드
+
+| 로그 파일 | 생성 주기 | 어떤 상황에서 봐야 하나 |
+| :--- | :--- | :--- |
+| **`catalina.out`** | 단일 파일 (계속 누적) | 서버가 안 뜰 때, 500 에러, 스택 트레이스 확인, **장애 시 1순위** |
+| **`catalina.YYYY-MM-DD.log`** | 일별 롤링 | 특정 날짜의 서버 시작/종료 이벤트, 클래스 로딩 오류 |
+| **`localhost.YYYY-MM-DD.log`** | 일별 롤링 | 특정 웹 앱의 초기화 오류, `context` 로드 실패 |
+| **`localhost_access_log.YYYY-MM-DD.txt`** | 일별 롤링 | HTTP 요청/응답 기록, IP 추적, 응답코드 통계, 느린 요청 파악 |
+| **`manager.YYYY-MM-DD.log`** | 일별 롤링 | Manager 앱을 통한 배포/삭제 이력 |
+
+### 상황별 빠른 참조
+```
+서버가 시작이 안 돼요          → catalina.out
+배포했는데 404가 떠요           → localhost.YYYY-MM-DD.log
+특정 날짜에 접속한 IP 확인     → localhost_access_log.YYYY-MM-DD.txt
+Manager로 배포했는데 실패해요  → manager.YYYY-MM-DD.log
+```
+
+### 로그 파일 뒤에 날짜가 붙는 원리 (Rolling 설정)
+
+날짜가 붙는 로그 파일은 **매일 자정에 자동으로 새 파일을 생성**하는 롤링(Rolling) 방식입니다.
+`access_log`의 경우 `server.xml`의 `AccessLogValve`에서 패턴을 직접 제어합니다.
+
+**위치:** `/etc/tomcat10/server.xml`
+```xml
+<Valve className="org.apache.catalina.valves.AccessLogValve"
+       directory="logs"
+       prefix="localhost_access_log"
+       suffix=".txt"
+       pattern="%h %l %u %t &quot;%r&quot; %s %b"
+       fileDateFormat="yyyy-MM-dd" />
+```
+
+| 속성 | 설명 |
+| :--- | :--- |
+| `prefix` | 파일 이름 앞부분 (`localhost_access_log`) |
+| `suffix` | 파일 확장자 (`.txt`) |
+| `fileDateFormat` | 날짜 형식 — 이 값이 파일명 중간에 삽입됨 |
+| `pattern` | 로그에 기록할 항목 (`%h`=클라이언트IP, `%t`=시각, `%r`=요청, `%s`=응답코드) |
+
+> `fileDateFormat="yyyy-MM-dd"`로 설정하면 `localhost_access_log.2025-07-01.txt` 형태로 생성됩니다.
+> `fileDateFormat="yyyy-MM"`으로 바꾸면 월별 단위로 묶어서 관리할 수 있습니다.
+
+`catalina`, `localhost` 등 나머지 로그의 롤링은 **`conf/logging.properties`** 에서 설정합니다.
+```properties
+# 예: catalina 로그 보존 일수 설정
+1catalina.org.apache.juli.AsyncFileHandler.level = FINE
+1catalina.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+1catalina.org.apache.juli.AsyncFileHandler.prefix = catalina.
+# 날짜 형식 및 최대 보존일 (기본값: 90일)
+1catalina.org.apache.juli.AsyncFileHandler.maxDays = 90
+```
 
 ---
 

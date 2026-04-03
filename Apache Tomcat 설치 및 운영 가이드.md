@@ -6,35 +6,30 @@
 
 ## 1. Tomcat 설치 (Ubuntu/WSL2)
 
-### 🛠️ 사전 준비 (JDK 설치)
-Tomcat은 Java 기반으로 구동되므로 JDK 설치가 필수입니다.
+### 🛠️ 사전 준비 (JDK 및 네트워크 도구 설치)
+Tomcat 구동을 위한 Java와 포트 확인을 위한 네트워크 도구를 먼저 설치합니다.
 ```bash
-# 패키지 업데이트
-sudo apt update
-
-# JDK 설치 (기본 버전)
-sudo apt install default-jdk -y
-
-# 설치 확인 (JDK 1.8 또는 11 이상 권장)
-java -version
-```
-
-### 📥 Tomcat 설치 (에러 해결 포함)
-최신 우분투 환경에서는 `tomcat9` 대신 `tomcat10`을 사용해야 할 수 있습니다.
-```bash
-# 1. 저장소 업데이트 및 universe 활성화
+# 1. 패키지 업데이트 및 저장소 활성화
 sudo add-apt-repository universe
 sudo apt update
 
-# 2. Tomcat 10 및 관리자 도구 설치
+# 2. JDK 및 net-tools 설치 (netstat 사용을 위함)
+sudo apt install default-jdk net-tools -y
+
+# 3. 설치 확인
+java -version
+```
+
+### 📥 Tomcat 설치 (Tomcat 10 기준)
+최신 우분투 환경에서는 `tomcat10` 설치를 권장합니다.
+```bash
+# Tomcat 10 및 관리자 도구 설치
 sudo apt install tomcat10 tomcat10-admin -y
 ```
 
 ---
 
 ## 2. 주요 운영 명령어 (Service Management)
-
-실무에서 가장 많이 사용하는 서비스 제어 명령어입니다. (Tomcat 10 기준)
 
 | 기능 | 명령어 |
 | :--- | :--- |
@@ -49,9 +44,9 @@ sudo apt install tomcat10 tomcat10-admin -y
 
 ## 3. Tomcat 주요 폴더 경로 (Directory Structure)
 
-Tomcat의 주요 데이터와 설정이 담긴 경로별 역할입니다.
+Ubuntu 패키지 관리자(`apt`)로 설치했을 때의 주요 경로입니다.
 
-| 폴더명 | 용도 | 실제 경로 (Ubuntu 패키지 설치 기준) |
+| 폴더명 | 용도 | 실제 경로 (Ubuntu 기준) |
 | :--- | :--- | :--- |
 | **`bin`** | **실행 파일** | `/usr/share/tomcat10/bin/` |
 | **`conf`** | **설정 파일** | `/etc/tomcat10/` (`server.xml` 등) |
@@ -69,7 +64,7 @@ Tomcat의 주요 데이터와 설정이 담긴 경로별 역할입니다.
 # 설정 파일 열기
 sudo nano /etc/tomcat10/server.xml
 ```
-* 파일 내용 중 `<Connector port="8080" ... />` 부분의 숫자를 원하는 포트로 수정 후 서비스를 재시작합니다.
+* 파일 내용 중 `<Connector port="8080" ... />` 부분의 숫자를 원하는 포트로 수정 후 서비스를 재시작(`restart`)합니다.
 
 ---
 
@@ -77,6 +72,6 @@ sudo nano /etc/tomcat10/server.xml
 
 1. 개발 도구(Eclipse/IntelliJ)에서 프로젝트를 **`.war`** 파일로 빌드합니다.
 2. 배포 경로인 `/var/lib/tomcat10/webapps/` 폴더로 해당 파일을 복사합니다.
-   * `sudo cp myproject.war /var/lib/tomcat10/webapps/`
+   * 예: `sudo cp my-app.war /var/lib/tomcat10/webapps/`
 3. 톰캣이 실행 중이면 자동으로 압축이 풀리며 배포가 완료됩니다.
 4. 브라우저에서 `http://서버IP:포트/파일명`으로 접속을 확인합니다.

@@ -1,4 +1,4 @@
-# windows-subsystem-for-linux# 🐧 WSL (Windows Subsystem for Linux) 완벽 가이드
+🐧 WSL (Windows Subsystem for Linux) 완벽 가이드
 
 > Windows에서 Linux를 네이티브처럼 사용할 수 있는 WSL의 설치부터 활용까지 정리한 문서입니다.
 

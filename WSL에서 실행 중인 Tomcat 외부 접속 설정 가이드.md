@@ -36,7 +36,7 @@ xxx.xx.xxx.xxx
 **PowerShell을 관리자 권한으로 열고** 아래 명령어를 실행합니다.
 
 ```powershell
-netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=xxxx connectaddress=xxx.xx.xxx.xxx
+netsh interface portproxy add v4tov4 listenport=xxxx listenaddress=0.0.0.0 connectport=xxxx connectaddress=xxx.xx.xxx.xxx
 ```
 
 > `xxx.xx.xxx.xxx` 부분을 1단계에서 확인한 본인의 WSL IP로 변경하세요.
@@ -45,7 +45,7 @@ netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 conne
 
 ### 3️⃣ Windows 방화벽 허용
 
-외부에서 윈도우로 들어오는 8080 포트를 허용합니다.
+외부에서 윈도우로 들어오는 xxxx 포트를 허용합니다.
 
 ```powershell
 New-NetFirewallRule -DisplayName "Tomcat WSL" -Direction Inbound -LocalPort xxxx -Protocol TCP -Action Allow

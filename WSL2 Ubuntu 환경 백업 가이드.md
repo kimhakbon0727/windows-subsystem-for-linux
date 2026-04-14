@@ -8,9 +8,15 @@
 
 | 항목 | 내용 |
 |------|------|
-| 배포판 | Ubuntu |
-| WSL 버전 | WSL2 |
-| 상태 | ✅ 정상 |
+| 🐧 배포판 | Ubuntu |
+| 🔢 WSL 버전 | WSL2 |
+| 🐚 Shell | bash (`/bin/bash`) |
+| 🛠️ 설치된 툴 | `git`, `python3` |
+| ⚙️ wsl.conf | 없음 (기본 설정) |
+| 📁 Dotfiles | 커스텀 설정 없음 (기본 상태) |
+| 👤 사용자 | bon |
+| 💻 PC | DESKTOP-VEPJL2D |
+| 📊 상태 | ✅ 정상 (깨끗한 초기 상태) |
 
 ---
 
@@ -29,6 +35,52 @@ echo "=== SHELL ===" && echo $SHELL && \
 echo "=== DOTFILES ===" && ls -la ~ | grep "^\." && \
 echo "=== WSL.CONF ===" && cat /etc/wsl.conf 2>/dev/null || echo "없음" && \
 echo "=== KEY TOOLS ===" && which git node python3 python docker zsh fish 2>/dev/null
+```
+
+---
+
+## ✅ 실제 환경 확인 결과
+
+### 1️⃣ 배포판 확인 (PowerShell)
+```
+NAME      STATE     VERSION
+* Ubuntu  Stopped   2
+```
+
+### 2️⃣ 내부 환경 확인 결과
+
+```
+=== SHELL ===
+/bin/bash
+
+=== DOTFILES ===
+없음
+
+=== WSL.CONF ===
+없음
+
+=== KEY TOOLS ===
+/usr/bin/git
+/usr/bin/python3
+```
+
+### 💡 분석 요약
+
+> 현재 **커스텀 설정이 거의 없는 깨끗한 초기 상태**입니다.
+> `git`과 `python3`만 설치되어 있으며, dotfiles나 wsl.conf 설정이 없어 백업할 항목이 적습니다.
+> 앞으로 환경을 꾸밀수록 아래 백업 방법을 참고해서 주기적으로 백업하세요!
+
+### 3️⃣ 추가 확인할 명령어
+
+```bash
+# git 설정 있는지
+cat ~/.gitconfig
+
+# 설치한 패키지 수 확인
+dpkg --get-selections | grep "install$" | wc -l
+
+# pip로 설치한 패키지
+pip3 list 2>/dev/null
 ```
 
 ---
@@ -146,4 +198,4 @@ sudo apt-get dselect-upgrade
 
 ---
 
-> 🔄 마지막 업데이트: 2026년 4월
+> 🔄 마지막 업데이트: 2026년 4월 14일

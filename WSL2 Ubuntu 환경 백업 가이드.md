@@ -92,11 +92,24 @@ pip3 list 2>/dev/null
 가장 완전한 백업 방법입니다. 모든 설정과 파일이 포함됩니다.
 
 ```powershell
-# PowerShell에서 실행
+# 1. 백업 폴더 먼저 생성
+mkdir C:\backup
+
+# 2. 배포판 내보내기
 wsl --export Ubuntu C:\backup\ubuntu-backup.tar
 ```
 
+> ⚠️ 폴더가 없으면 `오류 코드: Wsl/ERROR_PATH_NOT_FOUND` 가 발생합니다. 반드시 폴더를 먼저 만드세요!
 > 📁 파일 크기가 수 GB가 될 수 있습니다.
+
+다른 위치에 저장하고 싶다면:
+```powershell
+# 바탕화면에 저장
+wsl --export Ubuntu C:\Users\82102\Desktop\ubuntu-backup.tar
+
+# 다운로드 폴더에 저장
+wsl --export Ubuntu C:\Users\82102\Downloads\ubuntu-backup.tar
+```
 
 ---
 
